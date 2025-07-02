@@ -9,9 +9,69 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Clock, Users, MessageSquare, Settings, Info } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Shield, Clock, Users, MessageSquare, Settings, Info, Plus, Copy, Star } from "lucide-react";
 
 const Rules = () => {
+  const [selectedClient, setSelectedClient] = useState("");
+  const [selectedWaba, setSelectedWaba] = useState("");
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState("");
+
+  const clients = [
+    { 
+      id: "1", 
+      name: "TechCorp Ltda",
+      wabas: [
+        { id: "waba_1", name: "WABA Principal", phone: "+55 11 99999-0001" },
+        { id: "waba_2", name: "WABA Suporte", phone: "+55 11 99999-0002" }
+      ]
+    },
+    { 
+      id: "2", 
+      name: "Marketing Digital Plus",
+      wabas: [
+        { id: "waba_3", name: "WABA Marketing", phone: "+55 11 99999-0003" }
+      ]
+    },
+    { 
+      id: "3", 
+      name: "E-commerce Solutions",
+      wabas: [
+        { id: "waba_4", name: "WABA Vendas", phone: "+55 11 99999-0004" },
+        { id: "waba_5", name: "WABA Atendimento", phone: "+55 11 99999-0005" },
+        { id: "waba_6", name: "WABA Logística", phone: "+55 11 99999-0006" }
+      ]
+    }
+  ];
+
+  const templates = [
+    {
+      id: "conservative",
+      name: "Conservador",
+      description: "Configuração segura para preservar a linha",
+      icon: Shield,
+      color: "text-green-600",
+      isDefault: true
+    },
+    {
+      id: "balanced",
+      name: "Equilibrado",
+      description: "Configuração balanceada entre segurança e volume",
+      icon: Settings,
+      color: "text-blue-600",
+      isDefault: false
+    },
+    {
+      id: "aggressive",
+      name: "Agressivo",
+      description: "Configuração para máximo volume de disparos",
+      icon: MessageSquare,
+      color: "text-orange-600",
+      isDefault: false
+    }
+  ];
+
   const [rules, setRules] = useState({
     maxMessagesWithoutReply: { enabled: true, value: 3, period: "24h" },
     allowNewContacts: { enabled: false },
@@ -24,14 +84,48 @@ const Rules = () => {
     engagementRequired: { enabled: true, value: 30 }
   });
 
-  const [selectedClient, setSelectedClient] = useState("all");
+  const selectedClientData = clients.find(c => c.id === selectedClient);
+  const availableWabas = selectedClientData?.wabas || [];
 
-  const clients = [
-    { id: "all", name: "Todas as Linhas" },
-    { id: "1", name: "TechCorp Ltda" },
-    { id: "2", name: "Marketing Digital Plus" },
-    { id: "3", name: "E-commerce Solutions" }
-  ];
+  const applyTemplate = (templateId: string) => {
+    const templateConfigs = {
+      conservative: {
+        maxMessagesWithoutReply: { enabled: true, value: 2, period: "24h" },
+        allowNewContacts: { enabled: false },
+        templateRotation: { enabled: true },
+        lineUsageLimit: { enabled: true, value: 60 },
+        minimumInterval: { enabled: true, value: 60, unit: "minutes" },
+        temporaryBlock: { enabled: true, value: 120, unit: "minutes" },
+        sendingWindow: { enabled: true, start: "09:00", end: "17:00" },
+        weekendSending: { enabled: false },
+        engagementRequired: { enabled: true, value: 20 }
+      },
+      balanced: {
+        maxMessagesWithoutReply: { enabled: true, value: 3, period: "24h" },
+        allowNewContacts: { enabled: true },
+        templateRotation: { enabled: true },
+        lineUsageLimit: { enabled: true, value: 80 },
+        minimumInterval: { enabled: true, value: 30, unit: "minutes" },
+        temporaryBlock: { enabled: true, value: 60, unit: "minutes" },
+        sendingWindow: { enabled: true, start: "08:00", end: "18:00" },
+        weekendSending: { enabled: false },
+        engagementRequired: { enabled: true, value: 30 }
+      },
+      aggressive: {
+        maxMessagesWithoutReply: { enabled: true, value: 5, period: "24h" },
+        allowNewContacts: { enabled: true },
+        templateRotation: { enabled: true },
+        lineUsageLimit: { enabled: true, value: 95 },
+        minimumInterval: { enabled: true, value: 15, unit: "minutes" },
+        temporaryBlock: { enabled: true, value: 30, unit: "minutes" },
+        sendingWindow: { enabled: true, start: "07:00", end: "22:00" },
+        weekendSending: { enabled: true },
+        engagementRequired: { enabled: true, value: 50 }
+      }
+    };
+
+    setRules(templateConfigs[templateId as keyof typeof templateConfigs]);
+  };
 
   const ruleCategories = [
     {
@@ -247,18 +341,55 @@ const Rules = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <Select value={selectedClient} onValueChange={setSelectedClient}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              {clients.map(client => (
-                <SelectItem key={client.id} value={client.id}>
-                  {client.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                <Copy className="h-4 w-4 mr-2" />
+                Templates
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Templates de Parametrização</DialogTitle>
+                <DialogDescription>
+                  Escolha um template pré-configurado para aplicar automaticamente às regras
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                {templates.map((template) => (
+                  <div key={template.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-lg bg-gray-100 ${template.color}`}>
+                        <template.icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h3 className="font-medium">{template.name}</h3>
+                          {template.isDefault && (
+                            <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
+                              <Star className="h-3 w-3 mr-1" />
+                              Padrão
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600">{template.description}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => {
+                        applyTemplate(template.id);
+                        setShowTemplateDialog(false);
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Aplicar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
           
           <Button className="bg-blue-600 hover:bg-blue-700">
             Salvar Alterações
@@ -266,60 +397,135 @@ const Rules = () => {
         </div>
       </div>
 
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
-          As regras são aplicadas em tempo real. Todas as solicitações de disparo são validadas antes do envio para o WhatsApp.
-        </AlertDescription>
-      </Alert>
+      {/* Filtros de Cliente e WABA */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Seleção de Cliente e WABA</CardTitle>
+          <CardDescription>
+            Selecione o cliente e o WhatsApp Business Account para configurar as regras
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Cliente</Label>
+              <Select value={selectedClient} onValueChange={(value) => {
+                setSelectedClient(value);
+                setSelectedWaba(""); // Reset WABA selection when client changes
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-      <div className="space-y-6">
-        {ruleCategories.map((category) => (
-          <Card key={category.id}>
-            <CardHeader>
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg bg-gray-50 ${category.color}`}>
-                  <category.icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">{category.title}</CardTitle>
-                  <CardDescription>Configure as regras desta categoria</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {category.rules.map((rule) => (
-                <div key={rule.key} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center space-x-3">
-                      <Label className="text-base font-medium">{rule.title}</Label>
-                      <Switch 
-                        checked={rules[rule.key as keyof typeof rules].enabled}
-                        onCheckedChange={(checked) => setRules(prev => ({
-                          ...prev,
-                          [rule.key]: { ...prev[rule.key as keyof typeof rules], enabled: checked }
-                        }))}
-                      />
-                      {rules[rule.key as keyof typeof rules].enabled && (
-                        <Badge variant="outline" className="bg-green-50 text-green-700">
-                          Ativo
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600">{rule.description}</p>
+            <div className="space-y-2">
+              <Label>WhatsApp Business Account (WABA)</Label>
+              <Select 
+                value={selectedWaba} 
+                onValueChange={setSelectedWaba}
+                disabled={!selectedClient}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={selectedClient ? "Selecione uma WABA" : "Primeiro selecione um cliente"} />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {availableWabas.map(waba => (
+                    <SelectItem key={waba.id} value={waba.id}>
+                      <div className="flex flex-col">
+                        <span>{waba.name}</span>
+                        <span className="text-xs text-gray-500">{waba.phone}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {selectedClient && selectedWaba && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Configurando regras para <strong>{selectedClientData?.name}</strong> - 
+                WABA: <strong>{availableWabas.find(w => w.id === selectedWaba)?.name}</strong>
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Configuração das Regras */}
+      {selectedClient && selectedWaba && (
+        <div className="space-y-6">
+          {ruleCategories.map((category) => (
+            <Card key={category.id}>
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg bg-gray-50 ${category.color}`}>
+                    <category.icon className="h-5 w-5" />
                   </div>
-                  
-                  {rule.component && rules[rule.key as keyof typeof rules].enabled && (
-                    <div className="ml-4">
-                      {rule.component}
-                    </div>
-                  )}
+                  <div>
+                    <CardTitle className="text-lg">{category.title}</CardTitle>
+                    <CardDescription>Configure as regras desta categoria</CardDescription>
+                  </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {category.rules.map((rule) => (
+                  <div key={rule.key} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center space-x-3">
+                        <Label className="text-base font-medium">{rule.title}</Label>
+                        <Switch 
+                          checked={rules[rule.key as keyof typeof rules].enabled}
+                          onCheckedChange={(checked) => setRules(prev => ({
+                            ...prev,
+                            [rule.key]: { ...prev[rule.key as keyof typeof rules], enabled: checked }
+                          }))}
+                        />
+                        {rules[rule.key as keyof typeof rules].enabled && (
+                          <Badge variant="outline" className="bg-green-50 text-green-700">
+                            Ativo
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">{rule.description}</p>
+                    </div>
+                    
+                    {rule.component && rules[rule.key as keyof typeof rules].enabled && (
+                      <div className="ml-4">
+                        {rule.component}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {!selectedClient && (
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center space-y-2">
+              <MessageSquare className="h-12 w-12 text-gray-400 mx-auto" />
+              <h3 className="text-lg font-medium text-gray-900">Selecione um Cliente</h3>
+              <p className="text-gray-600">
+                Escolha um cliente e uma WABA para começar a configurar as regras de disparo
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
