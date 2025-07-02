@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Shield, Clock, Users, MessageSquare, Settings, Info, Plus, Copy, Star, Phone } from "lucide-react";
+import { Shield, Clock, Users, MessageSquare, Settings, Info, Plus, Copy, Star, Phone, PhoneCall } from "lucide-react";
 
 const Rules = () => {
   const [selectedClient, setSelectedClient] = useState("");
@@ -369,6 +369,18 @@ const Rules = () => {
     }
   ];
 
+  const getSelectedLineDisplay = () => {
+    if (selectedLine === "all") {
+      return {
+        name: "Todas as linhas",
+        phone: `${availableLines.length} linha(s) selecionada(s)`,
+        isAll: true
+      };
+    }
+    const line = availableLines.find(l => l.id === selectedLine);
+    return line ? { ...line, isAll: false } : null;
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -501,6 +513,15 @@ const Rules = () => {
                   <SelectValue placeholder={selectedWaba ? "Selecione uma linha" : "Primeiro selecione uma WABA"} />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
+                  <SelectItem value="all">
+                    <div className="flex items-center space-x-2">
+                      <PhoneCall className="h-3 w-3" />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">Todas as linhas</span>
+                        <span className="text-xs text-gray-500">Aplicar regras a todas as {availableLines.length} linha(s)</span>
+                      </div>
+                    </div>
+                  </SelectItem>
                   {availableLines.map(line => (
                     <SelectItem key={line.id} value={line.id}>
                       <div className="flex items-center space-x-2">
@@ -523,8 +544,22 @@ const Rules = () => {
               <AlertDescription>
                 Configurando regras para <strong>{selectedClientData?.name}</strong> - 
                 WABA: <strong>{selectedWabaData?.name}</strong> - 
-                Linha: <strong>{availableLines.find(l => l.id === selectedLine)?.name}</strong> 
-                ({availableLines.find(l => l.id === selectedLine)?.phone})
+                {(() => {
+                  const lineDisplay = getSelectedLineDisplay();
+                  return lineDisplay ? (
+                    <>
+                      {lineDisplay.isAll ? (
+                        <span>
+                          <strong>{lineDisplay.name}</strong> ({lineDisplay.phone})
+                        </span>
+                      ) : (
+                        <span>
+                          Linha: <strong>{lineDisplay.name}</strong> ({lineDisplay.phone})
+                        </span>
+                      )}
+                    </>
+                  ) : null;
+                })()}
               </AlertDescription>
             </Alert>
           )}
