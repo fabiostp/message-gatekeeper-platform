@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,11 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Shield, Clock, Users, MessageSquare, Settings, Info, Plus, Copy, Star } from "lucide-react";
+import { Shield, Clock, Users, MessageSquare, Settings, Info, Plus, Copy, Star, Phone } from "lucide-react";
 
 const Rules = () => {
   const [selectedClient, setSelectedClient] = useState("");
   const [selectedWaba, setSelectedWaba] = useState("");
+  const [selectedLine, setSelectedLine] = useState("");
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState("");
 
@@ -23,24 +23,59 @@ const Rules = () => {
       id: "1", 
       name: "TechCorp Ltda",
       wabas: [
-        { id: "waba_1", name: "WABA Principal", phone: "+55 11 99999-0001" },
-        { id: "waba_2", name: "WABA Suporte", phone: "+55 11 99999-0002" }
+        { 
+          id: "waba_1", 
+          name: "WABA Principal",
+          lines: [
+            { id: "line_1", phone: "+55 11 99999-0001", name: "Atendimento" },
+            { id: "line_2", phone: "+55 11 99999-0002", name: "Vendas" },
+            { id: "line_3", phone: "+55 11 99999-0003", name: "Suporte" }
+          ]
+        },
+        { 
+          id: "waba_2", 
+          name: "WABA Marketing",
+          lines: [
+            { id: "line_4", phone: "+55 11 99999-0004", name: "Campanhas" },
+            { id: "line_5", phone: "+55 11 99999-0005", name: "Promoções" }
+          ]
+        }
       ]
     },
     { 
       id: "2", 
       name: "Marketing Digital Plus",
       wabas: [
-        { id: "waba_3", name: "WABA Marketing", phone: "+55 11 99999-0003" }
+        { 
+          id: "waba_3", 
+          name: "WABA Principal",
+          lines: [
+            { id: "line_6", phone: "+55 11 99999-0006", name: "Geral" }
+          ]
+        }
       ]
     },
     { 
       id: "3", 
       name: "E-commerce Solutions",
       wabas: [
-        { id: "waba_4", name: "WABA Vendas", phone: "+55 11 99999-0004" },
-        { id: "waba_5", name: "WABA Atendimento", phone: "+55 11 99999-0005" },
-        { id: "waba_6", name: "WABA Logística", phone: "+55 11 99999-0006" }
+        { 
+          id: "waba_4", 
+          name: "WABA Vendas",
+          lines: [
+            { id: "line_7", phone: "+55 11 99999-0007", name: "Vendas Online" },
+            { id: "line_8", phone: "+55 11 99999-0008", name: "Pós-vendas" }
+          ]
+        },
+        { 
+          id: "waba_5", 
+          name: "WABA Logística",
+          lines: [
+            { id: "line_9", phone: "+55 11 99999-0009", name: "Entregas" },
+            { id: "line_10", phone: "+55 11 99999-0010", name: "Rastreamento" },
+            { id: "line_11", phone: "+55 11 99999-0011", name: "Devoluções" }
+          ]
+        }
       ]
     }
   ];
@@ -86,6 +121,8 @@ const Rules = () => {
 
   const selectedClientData = clients.find(c => c.id === selectedClient);
   const availableWabas = selectedClientData?.wabas || [];
+  const selectedWabaData = availableWabas.find(w => w.id === selectedWaba);
+  const availableLines = selectedWabaData?.lines || [];
 
   const applyTemplate = (templateId: string) => {
     const templateConfigs = {
@@ -337,7 +374,7 @@ const Rules = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Regras de Negócio</h1>
-          <p className="text-gray-600">Configure as regras de autorização para disparos</p>
+          <p className="text-gray-600">Configure as regras de autorização para disparos por linha</p>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -397,21 +434,22 @@ const Rules = () => {
         </div>
       </div>
 
-      {/* Filtros de Cliente e WABA */}
+      {/* Filtros de Cliente, WABA e Linha */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Seleção de Cliente e WABA</CardTitle>
+          <CardTitle className="text-lg">Seleção de Cliente, WABA e Linha</CardTitle>
           <CardDescription>
-            Selecione o cliente e o WhatsApp Business Account para configurar as regras
+            Selecione o cliente, WhatsApp Business Account e a linha específica para configurar as regras
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Cliente</Label>
               <Select value={selectedClient} onValueChange={(value) => {
                 setSelectedClient(value);
-                setSelectedWaba(""); // Reset WABA selection when client changes
+                setSelectedWaba("");
+                setSelectedLine("");
               }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um cliente" />
@@ -430,7 +468,10 @@ const Rules = () => {
               <Label>WhatsApp Business Account (WABA)</Label>
               <Select 
                 value={selectedWaba} 
-                onValueChange={setSelectedWaba}
+                onValueChange={(value) => {
+                  setSelectedWaba(value);
+                  setSelectedLine("");
+                }}
                 disabled={!selectedClient}
               >
                 <SelectTrigger>
@@ -441,7 +482,33 @@ const Rules = () => {
                     <SelectItem key={waba.id} value={waba.id}>
                       <div className="flex flex-col">
                         <span>{waba.name}</span>
-                        <span className="text-xs text-gray-500">{waba.phone}</span>
+                        <span className="text-xs text-gray-500">{waba.lines.length} linha(s)</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Linha</Label>
+              <Select 
+                value={selectedLine} 
+                onValueChange={setSelectedLine}
+                disabled={!selectedWaba}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={selectedWaba ? "Selecione uma linha" : "Primeiro selecione uma WABA"} />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {availableLines.map(line => (
+                    <SelectItem key={line.id} value={line.id}>
+                      <div className="flex items-center space-x-2">
+                        <Phone className="h-3 w-3" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{line.name}</span>
+                          <span className="text-xs text-gray-500">{line.phone}</span>
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
@@ -450,12 +517,14 @@ const Rules = () => {
             </div>
           </div>
 
-          {selectedClient && selectedWaba && (
+          {selectedClient && selectedWaba && selectedLine && (
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
                 Configurando regras para <strong>{selectedClientData?.name}</strong> - 
-                WABA: <strong>{availableWabas.find(w => w.id === selectedWaba)?.name}</strong>
+                WABA: <strong>{selectedWabaData?.name}</strong> - 
+                Linha: <strong>{availableLines.find(l => l.id === selectedLine)?.name}</strong> 
+                ({availableLines.find(l => l.id === selectedLine)?.phone})
               </AlertDescription>
             </Alert>
           )}
@@ -463,7 +532,7 @@ const Rules = () => {
       </Card>
 
       {/* Configuração das Regras */}
-      {selectedClient && selectedWaba && (
+      {selectedClient && selectedWaba && selectedLine && (
         <div className="space-y-6">
           {ruleCategories.map((category) => (
             <Card key={category.id}>
@@ -520,7 +589,7 @@ const Rules = () => {
               <MessageSquare className="h-12 w-12 text-gray-400 mx-auto" />
               <h3 className="text-lg font-medium text-gray-900">Selecione um Cliente</h3>
               <p className="text-gray-600">
-                Escolha um cliente e uma WABA para começar a configurar as regras de disparo
+                Escolha um cliente, uma WABA e uma linha para começar a configurar as regras de disparo
               </p>
             </div>
           </CardContent>
