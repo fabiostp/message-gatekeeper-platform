@@ -116,7 +116,8 @@ const Rules = () => {
     temporaryBlock: { enabled: true, value: 60, unit: "minutes" },
     sendingWindow: { enabled: true, start: "08:00", end: "18:00" },
     weekendSending: { enabled: false },
-    engagementRequired: { enabled: true, value: 30 }
+    engagementRequired: { enabled: true, value: 30 },
+    minimumMailingContacts: { enabled: true, value: 10, unit: "percentage" }
   });
 
   const selectedClientData = clients.find(c => c.id === selectedClient);
@@ -135,7 +136,8 @@ const Rules = () => {
         temporaryBlock: { enabled: true, value: 120, unit: "minutes" },
         sendingWindow: { enabled: true, start: "09:00", end: "17:00" },
         weekendSending: { enabled: false },
-        engagementRequired: { enabled: true, value: 20 }
+        engagementRequired: { enabled: true, value: 20 },
+        minimumMailingContacts: { enabled: true, value: 5, unit: "percentage" }
       },
       balanced: {
         maxMessagesWithoutReply: { enabled: true, value: 3, period: "24h" },
@@ -146,7 +148,8 @@ const Rules = () => {
         temporaryBlock: { enabled: true, value: 60, unit: "minutes" },
         sendingWindow: { enabled: true, start: "08:00", end: "18:00" },
         weekendSending: { enabled: false },
-        engagementRequired: { enabled: true, value: 30 }
+        engagementRequired: { enabled: true, value: 30 },
+        minimumMailingContacts: { enabled: true, value: 10, unit: "percentage" }
       },
       aggressive: {
         maxMessagesWithoutReply: { enabled: true, value: 5, period: "24h" },
@@ -157,7 +160,8 @@ const Rules = () => {
         temporaryBlock: { enabled: true, value: 30, unit: "minutes" },
         sendingWindow: { enabled: true, start: "07:00", end: "22:00" },
         weekendSending: { enabled: true },
-        engagementRequired: { enabled: true, value: 50 }
+        engagementRequired: { enabled: true, value: 50 },
+        minimumMailingContacts: { enabled: true, value: 20, unit: "percentage" }
       }
     };
 
@@ -297,6 +301,39 @@ const Rules = () => {
                   <SelectItem value="minutes">minutos</SelectItem>
                   <SelectItem value="hours">horas</SelectItem>
                   <SelectItem value="days">dias</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )
+        },
+        {
+          key: "minimumMailingContacts",
+          title: "Limite mínimo de contatos no mailing",
+          description: "Número mínimo de contatos necessários para importar um mailing",
+          component: (
+            <div className="flex items-center space-x-2">
+              <Input 
+                type="number" 
+                value={rules.minimumMailingContacts.value}
+                className="w-20"
+                onChange={(e) => setRules(prev => ({
+                  ...prev,
+                  minimumMailingContacts: { ...prev.minimumMailingContacts, value: parseInt(e.target.value) }
+                }))}
+              />
+              <Select 
+                value={rules.minimumMailingContacts.unit}
+                onValueChange={(value) => setRules(prev => ({
+                  ...prev,
+                  minimumMailingContacts: { ...prev.minimumMailingContacts, unit: value }
+                }))}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="absolute">contatos</SelectItem>
+                  <SelectItem value="percentage">% do limite</SelectItem>
                 </SelectContent>
               </Select>
             </div>
