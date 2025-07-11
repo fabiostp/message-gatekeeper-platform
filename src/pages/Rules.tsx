@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Shield, Clock, Users, MessageSquare, Settings, Info, Plus, Copy, Star, Phone, PhoneCall } from "lucide-react";
+import { Shield, Clock, Users, MessageSquare, Settings, Info, Plus, Copy, Star, Phone, PhoneCall, Search } from "lucide-react";
+import { ClientSearchDialog } from "@/components/ClientSearchDialog";
 
 const Rules = () => {
   const [selectedClient, setSelectedClient] = useState("");
@@ -166,6 +167,12 @@ const Rules = () => {
     };
 
     setRules(templateConfigs[templateId as keyof typeof templateConfigs]);
+  };
+
+  const handleClientSelect = (clientId: string) => {
+    setSelectedClient(clientId);
+    setSelectedWaba("");
+    setSelectedLine("");
   };
 
   const ruleCategories = [
@@ -495,22 +502,29 @@ const Rules = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Cliente</Label>
-              <Select value={selectedClient} onValueChange={(value) => {
-                setSelectedClient(value);
-                setSelectedWaba("");
-                setSelectedLine("");
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex space-x-2">
+                <Select value={selectedClient} onValueChange={handleClientSelect}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Selecione um cliente" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {clients.map(client => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <ClientSearchDialog
+                  clients={clients}
+                  selectedClient={selectedClient}
+                  onClientSelect={handleClientSelect}
+                >
+                  <Button variant="outline" size="icon">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </ClientSearchDialog>
+              </div>
             </div>
 
             <div className="space-y-2">
